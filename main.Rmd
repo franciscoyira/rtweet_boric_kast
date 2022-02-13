@@ -1,0 +1,139 @@
+---
+title: "Top Tweets from Chilean Presidential Candidates"
+output: html_notebook
+---
+
+TODO:
+
+-   Figure out how to store secrets outside of the code ✅
+-   Copy code from last script ✅
+-   Convert output to plotly ✅
+-   Add `xfun::cache_rds` to cache tweets and not waste API calls ✅
+-   Make tweets available as fly-outs ✅
+-   Try to load the tweet in a box (crosstalk)
+-   Sentiment analysis of the replies (crosstalk)
+
+```{r}
+library(rtweet)
+library(tidyverse)
+library(keyring)
+library(plotly)
+
+twitter_token <- create_token(
+  app = "pacto-social-1",
+  consumer_key = 
+    keyring::key_get("pacto-social-1-consumer_key"),
+  consumer_secret = 
+    keyring::key_get("pacto-social-1-consumer_secret"),
+  access_token = 
+    keyring::key_get("pacto-social-1-access_token"),
+  access_secret =
+    keyring::key_get("pacto-social-1-access_secret"),
+  set_renv = TRUE)
+```
+
+```{r}
+# Retrieving tweets from Gabriel Boric
+tweets_by_boric <- get_timeline("@gabrielboric", n = 3200)
+
+# Retrieving tweets from Jose Antonio Kast
+tweets_by_kast <- get_timeline("@joseantoniokast", n = 3200)
+```
+
+```{r}
+# Function to filter organic tweets and rank them by engagement
+get_organic_ranked <- function(df) {
+  df %>%
+    filter(is_retweet == FALSE,
+           is.na(reply_to_status_id)) %>%
+    mutate(rank_engagement = dense_rank(desc(favorite_count + retweet_count))) %>%
+    arrange(rank_engagement)
+}
+```
+
+Then I apply the function to both dataframes and merge the results with map_df. Next, I filter the result to keep only the 10 more popular tweets of each candidate, and select the relevant columns for the visualization.
+
+```{r}
+tweets_for_plot <-
+  list(tweets_by_boric,
+       tweets_by_kast) %>%
+  map_df(get_organic_ranked) %>%
+  filter(rank_engagement <= 10) %>%
+  transmute(
+    rank_engagement,
+    screen_name,
+    created_at,
+    text,
+    favorite_count,
+    retweet_count,
+    engagement_count = favorite_count + retweet_count,
+    status_url
+  )
+
+tweets_for_plot
+```
+
+```{r}
+tweets_for_plot2 <- tweets_for_plot %>% 
+  mutate(engagement_count = ifelse(screen_name == "gabrielboric",
+                                   - engagement_count,
+                                   engagement_count))
+
+breaks_values_eng <- pretty(tweets_for_plot2$engagement_count)
+
+abs_k <- abs(breaks_values_eng)/1000
+
+labels_k <- ifelse(abs_k == 0, "0", str_c(abs_k, "K"))
+```
+
+```{r}
+fig <- plot_ly(
+  data = tweets_for_plot2,
+  x = ~engagement_count,
+  y = ~rank_engagement,
+  text = ~abs(engagement_count),
+  type = 'bar',
+  color = ~screen_name,
+  colors = c("red", "blue"),
+  orientation = 'h',
+      hovertemplate = paste0(
+      "<b>%{text:,.0f}</b> likes and RTs | ",
+      format(tweets_for_plot2$created_at, "%b %d"),
+      " | @",
+      tweets_for_plot2$screen_name,
+      "<br><br>",
+      str_wrap(tweets_for_plot2$text),
+      "<extra></extra>"
+      )
+) %>% 
+  layout(barmode = 'overlay',
+         title = "Most popular tweets by Chilean presidential candidates",
+         yaxis = list(title = "Ranking",
+                      autorange="reversed",
+                      showgrid=T,
+                      autotick = F, tickmode = "array", tickvals = 1:10),
+         xaxis = list(title = "Engagement (RTs + Likes)",
+                      tickmode = 'array',
+                      tickvals = breaks_values_eng,
+                      ticktext = labels_k),
+         legend = list(title=list(text='<b>Candidate</b>'),
+                       orientation = "h",   # show entries horizontally
+                       xanchor = "center",  # use center of legend as anchor
+                       x = 0.5,
+                       y=-0.2),
+         hovermode = "closest",
+         hoverlabel = list(bgcolor = "#DFDFDF", bordercolor = "black")
+         )
+
+# TODO: make them be in the same vertical position. ✅
+# TODO: Fix the "Rank engagement" labels ✅
+# TODO: Rename axis ✅
+# TODO: Fix the horizontal axis ("Engagement") ✅
+# TODO: Clean flyouts (change sign) ✅
+# TODO: add twitter text as flyouts ✅ 
+# TODO: change colours ✅
+
+fig
+```
+
+NEXT: crosstalk.
