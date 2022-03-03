@@ -19,25 +19,32 @@ library(tidyverse)
 library(keyring)
 library(plotly)
 
-twitter_token <- create_token(
-  app = "pacto-social-1",
-  consumer_key = 
-    keyring::key_get("pacto-social-1-consumer_key"),
-  consumer_secret = 
-    keyring::key_get("pacto-social-1-consumer_secret"),
-  access_token = 
-    keyring::key_get("pacto-social-1-access_token"),
-  access_secret =
-    keyring::key_get("pacto-social-1-access_secret"),
-  set_renv = TRUE)
+# twitter_token <- create_token(
+#   app = "pacto-social-1",
+#   consumer_key = 
+#     keyring::key_get("pacto-social-1-consumer_key"),
+#   consumer_secret = 
+#     keyring::key_get("pacto-social-1-consumer_secret"),
+#   access_token = 
+#     keyring::key_get("pacto-social-1-access_token"),
+#   access_secret =
+#     keyring::key_get("pacto-social-1-access_secret"),
+#   set_renv = TRUE)
 ```
 
 ```{r}
 # Retrieving tweets from Gabriel Boric
-tweets_by_boric <- get_timeline("@gabrielboric", n = 3200)
+tweets_by_boric <-
+  xfun::cache_rds({
+    get_timeline("@gabrielboric", n = 3200)
+  },
+  file = "tweets_by_boric.rds")
 
 # Retrieving tweets from Jose Antonio Kast
-tweets_by_kast <- get_timeline("@joseantoniokast", n = 3200)
+tweets_by_kast <- xfun::cache_rds({
+  get_timeline("@joseantoniokast", n = 3200)
+  },
+  file = "tweets_by_kast.rds")
 ```
 
 ```{r}
