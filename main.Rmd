@@ -52,7 +52,9 @@ tweets_by_kast <- xfun::cache_rds({
 get_organic_ranked <- function(df) {
   df %>%
     filter(is_retweet == FALSE,
-           is.na(reply_to_status_id)) %>%
+           is.na(reply_to_status_id),
+           # only tweets previous to the presidential election
+           created_at <= lubridate::ymd(20211220)) %>%
     mutate(rank_engagement = dense_rank(desc(favorite_count + retweet_count))) %>%
     arrange(rank_engagement)
 }
