@@ -71,6 +71,7 @@ tweets_for_plot <-
   transmute(
     rank_engagement,
     screen_name,
+    status_id,
     created_at,
     text,
     favorite_count,
@@ -145,4 +146,17 @@ fig <- plot_ly(
 fig
 ```
 
+## Next
+
 NEXT: crosstalk.
+https://rstudio.github.io/crosstalk/index.html 
+
+Tasks:
+[✅] Filter tweets after the presidential election
+[ ] Retrieve the replies of these tweets
+    Possible approach:
+    - Get all the followers of each one
+    - Loop through them and get their timelines
+    - Filter by "in reply to" using the IDs of the tweets I want
+[ ] Set up a minimal crosstalk example 
+
