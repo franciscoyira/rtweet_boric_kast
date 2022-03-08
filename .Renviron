@@ -1,0 +1,4 @@
+RETICULATE_PATH = "./env-py-twitter/"
+R_LIBS_USER="C:/RFolder/R/%p-library/%v"
+TWITTER_PAT=C:/Users/franc/Documents/.rtweet_token4.rds
+R_USER="C:/Users/franc/repos"
