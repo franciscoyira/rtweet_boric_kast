@@ -146,6 +146,10 @@ fig <- plot_ly(
 fig
 ```
 
+## Retrieving replies to the tweets
+
+
+
 ## Next
 
 NEXT: crosstalk.
@@ -158,5 +162,5 @@ Tasks:
     - Get all the followers of each one
     - Loop through them and get their timelines
     - Filter by "in reply to" using the IDs of the tweets I want
-[ ] Set up a minimal crosstalk example 
+
 
