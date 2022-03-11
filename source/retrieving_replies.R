@@ -14,3 +14,10 @@ boric_followers <- xfun::cache_rds({
                         retryonratelimit = TRUE)
 },
 file = "boric_followers.rds")
+
+kast_followers <- xfun::cache_rds({
+  rtweet::get_followers("joseantoniokast",
+                        n = 700000,
+                        retryonratelimit = TRUE)
+},
+file = "kast_followers.rds")
